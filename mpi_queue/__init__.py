@@ -17,6 +17,8 @@ successful, its arguments will be returned to the main node and stored in
    .results  # list of results 
    .errors   # list of errors (the arguments)
 
+   CAUTION: a argument set should be a list. 
+
 Sub node
 ---------
 
@@ -51,6 +53,15 @@ The script should be run with mpirun
 
 eg)
 $ mpirun -np 4 python test.py 
+
+
+Todo
+----
+List of updates to be made
+
+* Allow a single argument instead of using list. 
+
+
 """
 from mpi4py import MPI
 import MainNode
