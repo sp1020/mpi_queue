@@ -79,6 +79,9 @@ class mpi_queue:
 		self.flag_initialize = False 
 		self.flag_terminate = False
 
+		# argument to be passed to the ''function'' 
+		self.args = [] 
+
 		self.results = []
 		self.errors = []
 		if self.rank == 0: 
@@ -94,6 +97,21 @@ class mpi_queue:
 				self.terminate()
 	
 	def set_function(self, function, function_init='', function_analysis=''):
+		""" Set functions 
+		
+		Parameters
+		==========
+		function : 
+		   The main calculation function 
+
+		function_init : 
+		   Initialization function
+
+		function_analysis : 
+		   A function executed when a result is executed.
+
+		(CAUTION) The functions are defined only for the main node. 
+		"""
 		if self.flag_main:
 			self.function = function
 			if function_init != '':
@@ -102,24 +120,58 @@ class mpi_queue:
 				self.function_analysis = function_analysis
 
 	def set_args(self, args):
+		""" Set queues 
+
+		Parameters
+		==========
+		args : 
+		   List of arguments (arguments = a list of arguments)
+		   args should be a list of list. 
+		
+		Example
+		=======
+		eg) single argument case
+		   args =[[1], [2], [3]]
+
+		eg) multiple arguments case
+		   args = [[1,2], [2,3], [3,4]]
+		"""
 		if self.flag_main:
-			self.args = args
-			self.node.queues = self.args
+			# check 
+			if type(args) != list: 
+				print '[set_args] The argument should be a list of arguments'
+				self.terminate()
+				exit()
+			if len(args) == 0: 
+				print '[set_args] One or more  argument is required.'
+				self.terminate()
+				exit()
+			if type(args[0]) != list:
+				print '[set_argf] The argument should be a list)'
+				print '           args is a list of lists.'
+				self.terminate()
+				exit()
+
+			# set arguments 
+			self.args = args 
+			self.node.queues = args
 
 	def initialize(self):
 		if self.flag_main:
 			self.flag_initialize=True
-			self.node = MainNode.MainNode(self.function, 
+			self.node = MainNode.MainNode(self.function, args = self.args, 
 										  function_init=self.function_init,
 										  function_analysis=self.function_analysis,
 										  debug=self.debug)
 		
 	def execute(self):
+		""" Main job execution 
+
+		Main node : 
+		   If the job is not initialized, initialize the job 
+		
+		"""
 		if self.flag_main:
-			# self.node = MainNode.MainNode(self.function, self.args, 
-			# 							  function_init=self.function_init,
-			# 							  function_analysis=self.function_analysis,
-			# 							  debug=self.debug)
 			if not self.flag_initialize:
 				self.initialize()
 			self.node.execute()

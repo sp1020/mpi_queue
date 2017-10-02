@@ -15,7 +15,30 @@ class MainNode:
 
 	def __init__(self, function, args=[], function_init='', 
 				 function_analysis='', debug=False):
-		""" Main node cycle """
+		""" Main node cycle 
+
+		Parameters
+		==========
+		function : 
+		   The main calculation function 
+
+		function_init : 
+		   Initialization function
+
+		function_analysis : 
+		   A function executed when a result is executed.
+
+		Variables (Results)
+		===================
+		queues : 
+		   A list of queues 
+
+		results: 
+		   The stored results 
+
+		errors: 
+		   The stored errors 
+		"""
 
 		# task and queues
 		self.function = function 
@@ -44,6 +67,10 @@ class MainNode:
 			self.function_init(self)
 
 	def execute(self):
+		""" Main node cycle 
+
+		"""
+		
 		# main-node cycle 
 		while True:
 			# receive sub-node status 
@@ -59,6 +86,10 @@ class MainNode:
 				break
 
 	def terminate(self):
+		""" Termination code 
+		
+		Check whether queues are empty and all jobs are finished 
+		"""
 		while True:
 			if self._finish_condition():
 				break
