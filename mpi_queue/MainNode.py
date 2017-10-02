@@ -13,11 +13,14 @@ class MainNode:
 	Main nodes
 	"""
 
-	def __init__(self, function, args, debug=False):
+	def __init__(self, function, args=[], function_init='', 
+				 function_analysis='', debug=False):
 		""" Main node cycle """
 
 		# task and queues
 		self.function = function 
+		self.function_init = function_init
+		self.function_analysis = function_analysis
 		self.queues = args 
 
 		# connection (MPI)
@@ -36,6 +39,11 @@ class MainNode:
 		self.results = []
 		self.errors = []
 
+		# initialize 
+		if self.function_init != '':
+			self.function_init(self)
+
+	def execute(self):
 		# main-node cycle 
 		while True:
 			# receive sub-node status 
@@ -46,7 +54,12 @@ class MainNode:
 				self._receive_result()
 			elif signal == 'error':
 				self._error_treatment()
-				
+
+			if len(self.working_node) == 0 and len(self.queues) == 0:
+				break
+
+	def terminate(self):
+		while True:
 			if self._finish_condition():
 				break
 			
@@ -63,7 +76,8 @@ class MainNode:
 
 	def _send_task(self, src):
 		if self.queues == []:
-			pass 
+			print '[main] empty queue'
+			self._send_control_signal(src, 'wait')
 		else:
 			args = self.queues[0]
 			self.queues = self.queues[1:]
@@ -79,7 +93,10 @@ class MainNode:
 		self.working_node.pop(src)
 		if self.debug:
 			print '[main] Result from node %s: %s'%(src, result.result)
-		self.results.append(result.result)
+		if self.function_analysis != '':
+			self.function_analysis(self, result.result)
+		else:
+			self.results.append(result.result)
 
 	def _error_treatment(self):
 		task = self.comm.recv(source=self.status.Get_source(), tag=2, 
